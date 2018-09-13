@@ -1,0 +1,43 @@
+
+TARGET_ENV=$1
+
+# stop previous tunnels
+PIDS=`ps -ef |grep "ssh -fNL" | grep -v grep | awk '{print $2}'`
+if [ -z "$PIDS" ]
+then
+	echo "No previous tunnels. Continuing..."
+else
+	# echo "PIDS: " ${PIDS}
+	echo "Stopping previous tunnels. Killing PIDS: " ${PIDS}
+	kill -9 $PIDS
+fi
+
+# setup Ambari tunnel
+ssh -fNL 8080:localhost:8080 ${TARGET_ENV}_ambari
+echo "Ambari at http://localhost:8080"
+open "http://localhost:8080"
+
+if [[ $TARGET_ENV == "BHGE_POA" || $TARGET_ENV == "bhge_poa" ]]; then
+# setup OpsCenter tunnel
+	open "https://dataservices-opscenter-45144.run.aws-usw02-pr.ice.predix.io/opscenter/login.html"
+else
+	ssh -fNL 8888:localhost:8888 ${TARGET_ENV}_ops_center
+	open "http://localhost:8888"
+fi
+
+# setup DT Gateway tunnel
+ssh -fNL 9091:localhost:9090 ${TARGET_ENV}_dt_gateway
+open "http://localhost:9091/static/#/ops"
+
+# setup Resource Manager tunnel
+ssh -fNL 8088:localhost:8088 ${TARGET_ENV}_dt_gateway
+open "http://localhost:8088/cluster"
+
+CANARY_HOST=`ssh -G ${TARGET_ENV}_canary | grep "^hostname " | awk '{print $2}'`
+open "https://phoenix_monitor:H@al49WrSt@${CANARY_HOST}/timeseries/canary/detailedstatus"
+open "https://phoenix_monitor:H@al49WrSt@${CANARY_HOST}/timeseries/canary/checksla"
+
+# Splunk
+open "https://10.94.18.91:8000/"
+
+# ruby ~/bin/newItermSession.rb ${TARGET_ENV}_kafka_1 ${TARGET_ENV}_cassandra_1 ${TARGET_ENV}_hdfs_master_1 ${TARGET_ENV}_hdfs_slave_1

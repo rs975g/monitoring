@@ -1,0 +1,30 @@
+
+cd ~/chef/cf-data-services/chef-repo
+
+# cassandra
+ROLE="usw02-pr-cap-ts-cassandra-og"
+
+knife search node "roles:*${ROLE}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | awk -F\" '{print $4 ";" $8}' | sed s/usw02-pr-cap-ts-cassandra-og-/bp_cassandra_/ | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+
+ROLE=""
+fqdn="usw02-pr-cap-ts-timeseries-og-"
+
+knife search node "fqdn:*${fqdn}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | awk -F\" '{print $4 ";" $8}' | sed s/usw02-pr-cap-ts-timeseries-og-/bp_tsqs_/ | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+
+fqdn=""
+ROLE="usw02-pr-cap-ts-datatorrent-og"
+
+# some special processing
+knife search node "roles:*${ROLE}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | grep -v "ambari" | awk -F\" '{print $4 ";" $8}' | sed s/usw02-pr-cap-ts-datatorrent-og-/bp_hadoop_/ | sed s/-/_/g | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+
+fqdn=""
+ROLE="usw02-pr-cap-ts-datatorrent-og"
+
+# some special processing for ambari
+knife search node "roles:*${ROLE}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | grep -v "\-ga" | grep "ambari" | awk -F\" '{print $4 ";" $8}' | sed s/usw02-pr-cap-ts-datatorrent-og-ambari-server/bp_ambari/ | sed s/-/_/g | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+
+fqdn=""
+ROLE="usw02-pr-cap-ts-datatorrent-og"
+
+knife search node "roles:*${ROLE}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | grep -v "\-ga" | grep "\-slave" | awk -F\" '{print $4 ";" $8}' | sed s/usw02-pr-cap-ts-datatorrent-og-slave-/bl_kafka_/ | sed s/-/_/g | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+

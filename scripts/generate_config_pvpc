@@ -1,0 +1,49 @@
+
+cd ~/chef/cf-data-services/chef-repo
+
+SRC_ENVIRON="usw02-pr-dataservices"
+TARGET_ENVIRON="pvpc"
+SRC_COMPONENT="cassandra"
+TARGET_COMPONENT="cassandra"
+
+knife search node "roles:*${SRC_ENVIRON}-ts-${SRC_COMPONENT}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | awk -F\" '{print $4 ";" $8}' | sed s/${SRC_ENVIRON}-ts-${SRC_COMPONENT}/${TARGET_ENVIRON}_${TARGET_COMPONENT}/ | sed s/-/_/g | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+
+SRC_ENVIRON="usw02-pr-dataservices"
+TARGET_ENVIRON="pvpc"
+SRC_COMPONENT="time-series"
+TARGET_COMPONENT="tsqs"
+
+knife search node "roles:*${SRC_ENVIRON}-ts-${SRC_COMPONENT}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | awk -F\" '{print $4 ";" $8}' | sed s/${SRC_ENVIRON}-ts-${SRC_COMPONENT}/${TARGET_ENVIRON}_${TARGET_COMPONENT}/ | sed s/-/_/g | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+
+SRC_ENVIRON="usw02-pr-dataservices"
+TARGET_ENVIRON="pvpc"
+SRC_COMPONENT="opscenter-server"
+TARGET_COMPONENT="opscenter"
+
+knife search node "roles:*${SRC_ENVIRON}-ts-${SRC_COMPONENT}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | awk -F\" '{print $4 ";" $8}' | sed s/${SRC_ENVIRON}-ts-${SRC_COMPONENT}/${TARGET_ENVIRON}_${TARGET_COMPONENT}/ | sed s/-/_/g | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+
+
+SRC_ENVIRON="usw02-pr-dataservices"
+TARGET_ENVIRON="pvpc"
+SRC_COMPONENT="data-torrent"
+TARGET_COMPONENT="hadoop"
+
+# some special processing
+knife search node "roles:*${SRC_ENVIRON}-ts-${SRC_COMPONENT}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | grep -v "\-ga" | grep -v "ambari" | awk -F\" '{print $4 ";" $8}' | sed s/${SRC_ENVIRON}-ts-${SRC_COMPONENT}/${TARGET_ENVIRON}_${TARGET_COMPONENT}/ | sed s/-/_/g | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+
+
+SRC_ENVIRON="usw02-pr-dataservices"
+TARGET_ENVIRON="pvpc"
+SRC_COMPONENT="data-torrent"
+TARGET_COMPONENT=""
+
+# some special processing for ambari
+knife search node "roles:*${SRC_ENVIRON}-ts-${SRC_COMPONENT}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | grep -v "\-ga" | grep "ambari" | awk -F\" '{print $4 ";" $8}' | sed s/${SRC_ENVIRON}-ts-${SRC_COMPONENT}/${TARGET_ENVIRON}/ | sed s/-/_/g | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+
+SRC_ENVIRON="usw02-pr-dataservices"
+TARGET_ENVIRON="pvpc"
+SRC_COMPONENT="data-torrent"
+TARGET_COMPONENT="kafka"
+
+knife search node "roles:*${SRC_ENVIRON}-ts-${SRC_COMPONENT}*" -a name -a ipaddress -F pp | grep -v "^[ \t\n]*$" | grep -v "\-ga" | grep "\-slave" | awk -F\" '{print $4 ";" $8}' | sed s/${SRC_ENVIRON}-ts-${SRC_COMPONENT}-slave/${TARGET_ENVIRON}_${TARGET_COMPONENT}/ | sed s/-/_/g | awk -F\; '{print "Host " $1 "\n     HostName " $2 "\n     ProxyCommand ssh cf_jumphost_1 -W %h:%p"}'
+

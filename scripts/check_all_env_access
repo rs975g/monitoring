@@ -1,0 +1,80 @@
+#!/bin/bash
+
+ENVIRON=$1
+COMPONENT=$2
+
+function show_usage {
+	echo "Usage: " $0 "asv|pvpc|rc|bp|japan [jumphost|ambari|OpsCenter|DataTorrent|cassandra|tsqs|kafka]"
+}
+
+function validate_input {
+
+if [ -z "$ENVIRON" ] || [[ ($ENVIRON != "asv") && ($ENVIRON != "pvpc") && ($ENVIRON != "bp") && ($ENVIRON != "japan") && ($ENVIRON != "rc") ]]
+	then
+		echo "Invalid/No environment specified"
+		show_usage
+	else
+		echo "Found Environment: " $ENVIRON
+	fi
+
+	if [ -z "$COMPONENT" ] || [ $COMPONENT == "jumphost" ] || [ $COMPONENT == "ambari" ] || [ $COMPONENT == "OpsCenter" ] || [ $COMPONENT == "DataTorrent" ] || [ $COMPONENT == "cassandra" ] || [ $COMPONENT == "tsqs" ] || [ $COMPONENT == "kafka" ]
+	then
+		echo "Found Component: " $COMPONENT
+	else
+		echo "Invalid component specified."
+	        echo "Usage: " $0 "asv|pvpc|rc|bp|japan [jumphost|ambari|OpsCenter|DataTorrent|cassandra|tsqs|kafka]"
+	fi
+}
+
+validate_input
+
+echo "Environ: " $ENVIRON
+echo "Component: " $COMPONENT
+
+function test_connectivity {
+	## Print Env
+	echo -n "Checking $1 "
+	## Print Component
+	echo "$2 access"
+	arr=($(grep "^Host ${3}" ~/.ssh/config | awk '{print $2}'))
+	echo "   Found ${#arr[@]} $2 nodes"
+	for i in ${arr[@]}
+	do
+		HOST_IP=`ssh -G ${i} | grep "^hostname " | awk '{print $2}'`
+		echo -n "   ${i}/${HOST_IP}..."
+		ssh -t -oStrictHostKeyChecking=no -q ${i} "sudo -n ls -la /root" > /dev/null 2>&1 
+		# ssh -t -oStrictHostKeyChecking=no ${i} "sudo -n ls -la /root"
+		# ssh -q ${i} exit
+		retcode=$?
+		if [ $retcode -eq 255 ]
+		then
+        		echo "FAILED. No SSH access. Maybe no network access?"
+		elif [ $retcode -eq 2 ]
+		then
+        		echo "FAILED. No sudo access"
+		elif [ $retcode -eq 1 ]
+		then
+        		echo "FAILED. No sudo access. Maybe sudo requires passwword?"
+		elif [ $retcode -eq 0 ]
+		then
+        		echo "PASSED. ssh access and sudo OK."
+		else
+        		echo "FAILED. Unknown error. Status code: $retcode"
+		fi
+	done
+}
+
+if [ -z $ENVIRON ]
+then
+	exit
+fi
+
+test_connectivity ${ENVIRON}  "jumphost" "${ENVIRON}_jumphost"
+test_connectivity ${ENVIRON}  "ambari" "${ENVIRON}_ambari"
+test_connectivity ${ENVIRON}  "DataTorrent" "${ENVIRON}_dt_gateway"
+test_connectivity ${ENVIRON}  "HDFS" "${ENVIRON}_hdfs"
+test_connectivity ${ENVIRON}  "kafka" "${ENVIRON}_kafka"
+test_connectivity ${ENVIRON}  "OpsCenter" "${ENVIRON}_ops_center"
+test_connectivity ${ENVIRON}  "tsqs" "${ENVIRON}_tsqs"
+test_connectivity ${ENVIRON}  "Zookeeper" "${ENVIRON}_zookeeper"
+test_connectivity ${ENVIRON}  "cassandra" "${ENVIRON}_cassandra"

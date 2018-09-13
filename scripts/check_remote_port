@@ -1,0 +1,2 @@
+# nc -zv <host> <port>
+nc -zv 127.0.0.1 80

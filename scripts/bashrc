@@ -1,0 +1,27 @@
+function kill_pids {
+  if [ -n "$1" ]
+  then
+    echo "Killing previous tunnel"
+    kill -9 $1
+  fi
+}
+
+function ops_center {
+  PIDS=`ps -ef |grep "ssh -fNL" | grep -v grep | grep ops_center | awk '{print $2}'`
+  kill_pids $PIDS
+  ssh -fNL 8888:localhost:8888 ${1}_ops_center
+  open "http://localhost:8888"
+}
+function dt_gateway {
+  PIDS=`ps -ef |grep "ssh -fNL" | grep -v grep | grep dt_gateway | awk '{print $2}'`
+  kill_pids $PIDS
+  ssh -fNL 9090:localhost:9090 ${1}_dt_gateway
+  open "http://localhost:9090/static/#/ops"
+}
+function ambari {
+  PIDS=`ps -ef |grep "ssh -fNL" | grep -v grep | grep ambari | awk '{print $2}'`
+  kill_pids $PIDS
+  ssh -fNL 8080:localhost:8080 ${1}_ambari
+  open "http://localhost:8080"
+}
+export PATH=$PATH:~/bin/pts_tools
